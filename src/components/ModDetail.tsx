@@ -128,11 +128,16 @@ export default function ModDetail({ id }: { id: string }) {
         <div className="detail-row">
           <div className="detail-label">Homepage</div>
           <div>
-            {info.homepage ? (
-              <a href={info.homepage} target="_blank" rel="noreferrer" className="detail-link">Open homepage</a>
-            ) : (
-              <span className="detail-meta">No homepage available</span>
-            )}
+            {(() => {
+              const links = info.links || {}
+              const firstLink = Object.values(links)[0]
+              const homepageCandidate = info.homepage || info.pageUrl || firstLink || ''
+              return homepageCandidate ? (
+                <a href={homepageCandidate} target="_blank" rel="noreferrer" className="detail-link">Open homepage</a>
+              ) : (
+                <span className="detail-meta">No homepage available</span>
+              )
+            })()}
           </div>
         </div>
 

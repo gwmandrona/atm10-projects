@@ -29,7 +29,8 @@ export default function Search() {
       // The Modpack Index API may return different shapes; try common paths
       const list = json.data || json.mods || json.results || json || []
       const items: ModResult[] = (Array.isArray(list) ? list : []).map((m: any) => ({
-        id: m.id || m.slug || m.name || String(m._id || ''),
+        // prefer stable slug when available so detail lookups use human-friendly identifiers
+        id: m.slug || m.id || m.name || String(m._id || ''),
         name: m.name || m.title || m.slug || String(m.id || ''),
         description: m.description || m.summary || m.short_description || ''
       }))
