@@ -1,16 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::fs;
-use std::path::PathBuf;
-
-use tauri::api::path::app_dir;
+use tauri::AppHandle;
 
 #[tauri::command]
-fn fetch_url(url: String) -> Result<String, String> {
-  // Simple caching: store responses in app dir/cache/<hex of url>
-  let cache_dir = app_dir()
+fn fetch_url(app: AppHandle, url: String) -> Result<String, String> {
+  // Get the app's data directory for caching
+  let cache_dir = tauri::api::path::app_data_dir(&app.config())
     .map(|p| p.join("atm10_explorer").join("cache"))
-    .ok_or("failed to resolve app dir")?;
+    .ok_or("failed to resolve app data dir")?;
 
   let key = format!("{:x}", md5::compute(&url));
   let file_path = cache_dir.join(&key);
