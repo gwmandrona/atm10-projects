@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { fetchUrl } from '../api/fetchUrl'
 import { buildModUrl, buildModVersionsUrl } from '../api/modpack'
 
 type ModInfo = {
@@ -30,7 +30,7 @@ export default function ModDetail({ id }: { id: string }) {
       setError(null)
       try {
         const url = buildModUrl(id)
-        const resp: string = await invoke('fetch_url', { url })
+        const resp: string = await fetchUrl(url)
         const json = JSON.parse(resp)
         const data = json.data || json || {}
         const infoObj: ModInfo = {
@@ -44,7 +44,7 @@ export default function ModDetail({ id }: { id: string }) {
 
         // fetch versions
         const vurl = buildModVersionsUrl(id)
-        const vresp: string = await invoke('fetch_url', { url: vurl })
+        const vresp: string = await fetchUrl(vurl)
         const vjson = JSON.parse(vresp)
         const vlist = vjson.data || vjson.versions || vjson || []
         const vers: VersionInfo[] = Array.isArray(vlist) ? vlist.map((v: any) => ({ id: v.id, name: v.name || v.version || v.slug, released_at: v.released_at || v.date })) : []

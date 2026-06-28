@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { fetchUrl } from '../api/fetchUrl'
 import { buildSearchUrl } from '../api/modpack'
 import { useNavigate } from 'react-router-dom'
 
@@ -21,9 +21,9 @@ export default function Search() {
     setLoading(true)
     setError(null)
     try {
-      // Call the Modpack Index API via the Rust backend fetch_url command
+      // Call the Modpack Index API via the Rust backend fetch_url command or browser fetch fallback
       const url = buildSearchUrl(q)
-      const resp: string = await invoke('fetch_url', { url })
+      const resp: string = await fetchUrl(url)
       const json = JSON.parse(resp)
 
       // The Modpack Index API may return different shapes; try common paths
