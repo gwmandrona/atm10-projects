@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from '@tauri-apps/api'
 import { buildModUrl, buildModVersionsUrl } from '../api/modpack'
 
 type ModInfo = {
@@ -86,9 +86,9 @@ export default function ModDetail({ id }: { id: string }) {
       {info.dependencies && info.dependencies.length > 0 && (
         <div style={{marginBottom:8}}>
           <strong>Dependencies:</strong>
-+          <ul>
-+            {info.dependencies.map((d, i) => <li key={i}>{typeof d === 'string' ? d : (d.name || JSON.stringify(d))}</li>)}
-+          </ul>
+          <ul>
+            {info.dependencies.map((d, i) => <li key={i}>{typeof d === 'string' ? d : (d.name || JSON.stringify(d))}</li>)}
+          </ul>
         </div>
       )}
 

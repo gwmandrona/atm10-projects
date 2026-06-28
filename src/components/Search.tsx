@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from '@tauri-apps/api'
 import { buildSearchUrl } from '../api/modpack'
 import { useNavigate } from 'react-router-dom'
 
