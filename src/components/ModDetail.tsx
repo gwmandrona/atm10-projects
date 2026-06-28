@@ -1,60 +1,96 @@
 import React, { useEffect, useState } from 'react'
 import { fetchUrl } from '../api/fetchUrl'
-import { buildModUrl, buildModVersionsUrl } from '../api/modpack'
+import { buildModUrl } from '../api/modpack'
 
 type ModInfo = {
   id: string
-  name?: string
+  name: string
+  summary?: string
   description?: string
   homepage?: string
+  pageUrl?: string
+  links?: Record<string, string>
   authors?: string[]
-  dependencies?: any[]
+  categories?: string[]
+  launchers?: string[]
+  supportedVersions?: string[]
+  downloadCount?: number
+  latestReleaseDate?: string
+  lastUpdated?: string
 }
 
-type VersionInfo = {
-  id?: string
-  name?: string
-  released_at?: string
+function formatNumber(value?: number) {
+  return value == null ? '—' : Intl.NumberFormat().format(value)
+}
+
+function formatDate(value?: string) {
+  if (!value) return '—'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function renderLabelList(label: string, values?: string[]) {
+  if (!values || values.length === 0) return null
+  return (
+    <div className="detail-row">
+      <div className="detail-label">{label}</div>
+      <div className="detail-badges">
+        {values.map((item) => (
+          <span key={item} className="detail-badge">{item}</span>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function ModDetail({ id }: { id: string }) {
   const [info, setInfo] = useState<ModInfo | null>(null)
-  const [versions, setVersions] = useState<VersionInfo[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
+
     async function load() {
       setLoading(true)
       setError(null)
+
       try {
         const url = buildModUrl(id)
         const resp: string = await fetchUrl(url)
         const json = JSON.parse(resp)
         const data = json.data || json || {}
-        const infoObj: ModInfo = {
-          id: data.id || id,
-          name: data.name || data.title || data.slug || String(data.id || id),
-          description: data.description || data.summary || data.short_description || '',
-          homepage: data.homepage || data.website || data.url || '',
-          authors: (data.authors && Array.isArray(data.authors)) ? data.authors.map((a: any) => a.name || a) : (data.author ? [data.author] : []) ,
-          dependencies: data.dependencies || data.deps || []
-        }
 
-        // fetch versions
-        const vurl = buildModVersionsUrl(id)
-        const vresp: string = await fetchUrl(vurl)
-        const vjson = JSON.parse(vresp)
-        const vlist = vjson.data || vjson.versions || vjson || []
-        const vers: VersionInfo[] = Array.isArray(vlist) ? vlist.map((v: any) => ({ id: v.id, name: v.name || v.version || v.slug, released_at: v.released_at || v.date })) : []
+        const homepage = data.url || data.page_url || data.homepage || ''
+        const pageUrl = data.page_url || data.url || ''
+        const links: Record<string, string> = data.links || {}
+        const categories = Array.isArray(data.categories) ? data.categories.map((c: any) => c.name || c.slug || String(c.id || '')) : []
+        const authors = Array.isArray(data.authors) ? data.authors.map((a: any) => a.name || String(a)) : []
+        const launchers = Array.isArray(data.launchers) ? data.launchers.map((l: any) => l.name || l.slug || String(l.id || '')) : []
+        const supportedVersions = Array.isArray(data.minecraft_versions) ? data.minecraft_versions.map((v: any) => v.name || v.slug || String(v.id || '')) : []
+
+        const infoObj: ModInfo = {
+          id: String(data.id || id),
+          name: data.name || data.title || data.slug || String(data.id || id),
+          summary: data.summary || data.description || data.short_description || '',
+          description: data.description || data.summary || data.summary || '',
+          homepage,
+          pageUrl,
+          links,
+          authors,
+          categories,
+          launchers,
+          supportedVersions,
+          downloadCount: data.download_count,
+          latestReleaseDate: data.latest_release_date,
+          lastUpdated: data.last_updated || data.last_modified,
+        }
 
         if (!mounted) return
         setInfo(infoObj)
-        setVersions(vers)
       } catch (e: any) {
         if (!mounted) return
-        setError(e?.toString() || 'Failed to load mod')
+        setError(e?.toString() || 'Failed to load mod details')
       } finally {
         if (!mounted) return
         setLoading(false)
@@ -66,43 +102,68 @@ export default function ModDetail({ id }: { id: string }) {
   }, [id])
 
   if (loading) return <div>Loading mod details…</div>
-  if (error) return <div style={{color:'var(--muted)'}}>Error: {error}</div>
-  if (!info) return <div>No mod info available</div>
+  if (error) return <div className="detail-error">Error: {error}</div>
+  if (!info) return <div className="detail-empty">No mod info available</div>
 
   return (
-    <div>
-      <h2 style={{marginTop:0}}>{info.name}</h2>
-      {info.homepage && (
-        <div style={{marginBottom:8}}><a href={info.homepage} target="_blank" rel="noreferrer">Homepage</a></div>
-      )}
-      {info.description && <div style={{marginBottom:12}} className="meta">{info.description}</div>}
-
-      {info.authors && info.authors.length > 0 && (
-        <div style={{marginBottom:8}}>
-          <strong>Authors:</strong> {info.authors.join(', ')}
+    <div className="detail-container">
+      <div className="detail-header">
+        <div>
+          <h2>{info.name}</h2>
+          {info.summary && <p className="detail-summary">{info.summary}</p>}
         </div>
-      )}
-
-      {info.dependencies && info.dependencies.length > 0 && (
-        <div style={{marginBottom:8}}>
-          <strong>Dependencies:</strong>
-          <ul>
-            {info.dependencies.map((d, i) => <li key={i}>{typeof d === 'string' ? d : (d.name || JSON.stringify(d))}</li>)}
-          </ul>
+        <div className="detail-stats">
+          <div>
+            <span className="detail-stat-label">Downloads</span>
+            <div className="detail-stat-value">{formatNumber(info.downloadCount)}</div>
+          </div>
+          <div>
+            <span className="detail-stat-label">Latest release</span>
+            <div className="detail-stat-value">{formatDate(info.latestReleaseDate)}</div>
+          </div>
         </div>
-      )}
-
-      <div style={{marginTop:12}}>
-        <strong>Versions</strong>
-        {(!versions || versions.length === 0) && <div className="meta">No versions found</div>}
-        {versions && versions.length > 0 && (
-          <ul>
-            {versions.map((v) => (
-              <li key={v.id || v.name}>{v.name} {v.released_at ? <span className="meta">— {new Date(v.released_at).toLocaleDateString()}</span> : null}</li>
-            ))}
-          </ul>
-        )}
       </div>
+
+      <div className="detail-section">
+        <div className="detail-row">
+          <div className="detail-label">Homepage</div>
+          <div>
+            {info.homepage ? (
+              <a href={info.homepage} target="_blank" rel="noreferrer" className="detail-link">Open homepage</a>
+            ) : (
+              <span className="detail-meta">No homepage available</span>
+            )}
+          </div>
+        </div>
+
+        {info.links && Object.keys(info.links).length > 0 && (
+          <div className="detail-row">
+            <div className="detail-label">External Links</div>
+            <div className="detail-badges">
+              {Object.entries(info.links).map(([platform, url]) => (
+                <a key={platform} href={url} target="_blank" rel="noreferrer" className="detail-pill">{platform}</a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {renderLabelList('Authors', info.authors)}
+        {renderLabelList('Categories', info.categories)}
+        {renderLabelList('Launchers', info.launchers)}
+        {renderLabelList('Minecraft versions', info.supportedVersions?.slice(0, 10))}
+
+        <div className="detail-row">
+          <div className="detail-label">Last updated</div>
+          <div className="detail-meta">{formatDate(info.lastUpdated)}</div>
+        </div>
+      </div>
+
+      {info.description && (
+        <div className="detail-section">
+          <h3>Description</h3>
+          <p className="detail-description">{info.description}</p>
+        </div>
+      )}
     </div>
   )
 }

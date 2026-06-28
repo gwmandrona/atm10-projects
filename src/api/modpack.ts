@@ -5,9 +5,5 @@ export function buildSearchUrl(q: string) {
 }
 
 export function buildModUrl(id: string) {
-  return `${API_BASE}/mods/${encodeURIComponent(id)}`
-}
-
-export function buildModVersionsUrl(id: string) {
-  return `${API_BASE}/mods/${encodeURIComponent(id)}/versions`
+  return `${API_BASE}/mod/${encodeURIComponent(id)}`
 }

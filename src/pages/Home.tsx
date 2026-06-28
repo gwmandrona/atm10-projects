@@ -1,7 +1,6 @@
 import React from 'react'
 import Search from '../components/Search'
-import HowItWorks from '../components/HowItWorks'
-import RuntimeStatus from '../components/RuntimeStatus'
+import HomeInfo from '../components/HomeInfo'
 
 export default function Home() {
   return (
@@ -9,8 +8,7 @@ export default function Home() {
       <div className="card">
         <Search />
       </div>
-      <RuntimeStatus />
-      <HowItWorks />
+      <HomeInfo />
     </>
   )
 }
