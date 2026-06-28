@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { invoke } from '@tauri-apps/api/tauri'
-import { API_BASE, buildSearchUrl, buildModUrl, buildModVersionsUrl } from '../api/modpack'
-import ModDetail from './ModDetail'
+import { buildSearchUrl } from '../api/modpack'
+import { useNavigate } from 'react-router-dom'
 
 type ModResult = {
   id: string
@@ -14,7 +14,7 @@ export default function Search() {
   const [results, setResults] = useState<ModResult[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selected, setSelected] = useState<ModResult | null>(null)
+  const navigate = useNavigate()
 
   async function search() {
     if (!q) return
@@ -61,20 +61,14 @@ export default function Search() {
         <div>
           {results.length === 0 && <div className="card">No results</div>}
           {results.map((r) => (
-            <div key={r.id} className="result" onClick={() => setSelected(r)} style={{cursor:'pointer'}}>
+            <div key={r.id} className="result" onClick={() => navigate(`/mod/${encodeURIComponent(r.id)}`)} style={{cursor:'pointer'}}>
               <div style={{fontWeight:600}}>{r.name}</div>
               {r.description && <div className="meta">{r.description}</div>}
             </div>
           ))}
         </div>
       )}
-
-      {selected && (
-        <div className="card" style={{marginTop:12}}>
-          <button onClick={() => setSelected(null)} style={{marginBottom:8}}>Back to results</button>
-          <ModDetail id={selected.id} />
-        </div>
-      )}
+ 
     </div>
   )
 }
