@@ -1,0 +1,14 @@
+{
+  "package": {
+    "productName": "ATM10 Explorer",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "identifier": "com.example.atm10-explorer"
+    },
+    "allowlist": {
+      "all": true
+    }
+  }
+}

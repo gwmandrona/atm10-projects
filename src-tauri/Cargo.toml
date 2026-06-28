@@ -1,0 +1,18 @@
+[package]
+name = "atm10_explorer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Tauri
+tauri = { version = "1.4", features = ["api-all"] }
+# HTTP client (blocking) used by the command
+reqwest = { version = "0.11", features = ["blocking","json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+md5 = "0.7"
+
+[build-dependencies]
+
+[package.metadata]
+# Keep build minimal
